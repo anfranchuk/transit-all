@@ -1,0 +1,72 @@
+Sub SaveToExcel()
+    Dim objExcel As Object
+    Dim objWorkbook As Object
+    Dim objWorksheet1 As Object
+    Dim objWorksheet2 As Object
+    Dim objFolder As Object
+    Dim objItems As Object
+    Dim objMail As Object
+    Dim row As Integer
+    Dim currentDate As String
+    
+    ' создание нового экземпляра Excel
+    Set objExcel = CreateObject("Excel.Application")
+    objExcel.Visible = True
+    
+    ' создание новой рабочей книги
+    Set objWorkbook = objExcel.Workbooks.Add
+    Set objWorksheet1 = objWorkbook.Sheets.Add
+    Set objWorksheet2 = objWorkbook.Sheets.Add
+    
+    ' наименование листов
+    objWorksheet1.Name = "Входящие"
+    objWorksheet2.Name = "Исходящие"
+    
+    ' настройка заголовков столбцов
+    objWorksheet1.Cells(1, 1).Value = "Получатель"
+    objWorksheet1.Cells(1, 2).Value = "Тема"
+    
+    objWorksheet2.Cells(1, 1).Value = "Отправитель"
+    objWorksheet2.Cells(1, 2).Value = "Тема"
+    
+    ' выбор папки с письмами
+    Set objFolder = Outlook.Application.GetNamespace("MAPI").GetDefaultFolder(olFolderInbox)
+    Set objItems = objFolder.Items
+    
+    row = 2
+    
+    ' сохранение входящих писем за текущий день
+    For Each objMail In objItems
+        If TypeName(objMail) = "MailItem" And DateValue(objMail.ReceivedTime) = DateValue(Now) Then
+            objWorksheet1.Cells(row, 1).Value = objMail.ReceivedByName
+            objWorksheet1.Cells(row, 2).Value = objMail.Subject
+            row = row + 1
+        End If
+    Next objMail
+    
+    ' выбор папки с исходящими письмами
+    Set objFolder = Outlook.Application.GetNamespace("MAPI").GetDefaultFolder(olFolderSentMail)
+    Set objItems = objFolder.Items
+    
+    row = 2
+    
+    ' сохранение исходящих писем за текущий день
+    For Each objMail In objItems
+        If TypeName(objMail) = "MailItem" And DateValue(objMail.ReceivedTime) = DateValue(Now) Then
+            objWorksheet2.Cells(row, 1).Value = objMail.SenderName
+            objWorksheet2.Cells(row, 2).Value = objMail.Subject
+            row = row + 1
+        End If
+    Next objMail
+    
+    ' сохранение книги
+    currentDate = Format(Now(), "HHMMYYYY")
+    objWorkbook.SaveAs "C:\Путь\к\файлу\" & currentDate & ".xlsx" ' замените путь к файлу на свой
+       
+    ' освобождение ресурсов
+    objWorkbook.Close
+    Set objWorkbook = Nothing
+    Set objExcel = Nothing
+    
+    MsgBox "Письма сохранены в файл Excel"
+End Sub

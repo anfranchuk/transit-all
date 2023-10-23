@@ -1,0 +1,95 @@
+Для добавления фильтра писем за текущий день, необходимо внести следующие изменения в код:
+
+1. Объявить переменную `today` типа `Date`:
+```
+Dim today As Date
+```
+
+2. Присвоить переменной `today` текущую дату:
+```
+today = Date
+```
+
+3. В каждом цикле сохранения писем добавить условие для проверки даты получения/отправки письма:
+```
+If objMail.ReceivedTime >= today Then
+    ' или objMail.SentOn >= today, в зависимости от того, какую папку обрабатываем
+```
+
+4. Полный код с фильтром писем за текущий день выглядит следующим образом:
+```VBA
+Sub SaveToExcel()
+    Dim objExcel As Object
+    Dim objWorkbook As Object
+    Dim objWorksheet1 As Object
+    Dim objWorksheet2 As Object
+    Dim objFolder As Object
+    Dim objItems As Object
+    Dim objMail As Object
+    Dim row As Integer
+    Dim today As Date
+    
+    ' создание нового экземпляра Excel
+    Set objExcel = CreateObject("Excel.Application")
+    objExcel.Visible = True
+    
+    ' создание новой рабочей книги
+    Set objWorkbook = objExcel.Workbooks.Add
+    Set objWorksheet1 = objWorkbook.Sheets.Add
+    Set objWorksheet2 = objWorkbook.Sheets.Add
+    
+    ' наименование листов
+    objWorksheet1.Name = "Входящие"
+    objWorksheet2.Name = "Исходящие"
+    
+    ' настройка заголовков столбцов
+    objWorksheet1.Cells(1, 1).Value = "Получатель"
+    objWorksheet1.Cells(1, 2).Value = "Тема"
+    
+    objWorksheet2.Cells(1, 1).Value = "Отправитель"
+    objWorksheet2.Cells(1, 2).Value = "Тема"
+    
+    ' выбор папки с письмами
+    Set objFolder = Outlook.Application.GetNamespace("MAPI").GetDefaultFolder(olFolderInbox)
+    Set objItems = objFolder.Items
+    
+    row = 2
+    today = Date
+    
+    ' сохранение входящих писем
+    For Each objMail In objItems
+        If TypeName(objMail) = "MailItem" And objMail.ReceivedTime >= today Then
+            objWorksheet1.Cells(row, 1).Value = objMail.ReceivedByName
+            objWorksheet1.Cells(row, 2).Value = objMail.Subject
+            row = row + 1
+        End If
+    Next objMail
+    
+    ' выбор папки с исходящими письмами
+    Set objFolder = Outlook.Application.GetNamespace("MAPI").GetDefaultFolder(olFolderSentMail)
+    Set objItems = objFolder.Items
+    
+    row = 2
+    
+    ' сохранение исходящих писем
+    For Each objMail In objItems
+        If TypeName(objMail) = "MailItem" And objMail.SentOn >= today Then
+            objWorksheet2.Cells(row, 1).Value = objMail.SenderName
+            objWorksheet2.Cells(row, 2).Value = objMail.Subject
+            row = row + 1
+        End If
+    Next objMail
+    
+    ' сохранение книги
+    objWorkbook.SaveAs "C:\Путь\к\файлу\Excel_File.xlsx" ' замените путь к файлу на свой
+       
+    ' освобождение ресурсов
+    objWorkbook.Close
+    Set objWorkbook = Nothing
+    Set objExcel = Nothing
+    
+    MsgBox "Письма сохранены в файл Excel"
+End Sub
+```
+
+Не забудьте заменить `"C:\Путь\к\файлу\Excel_File.xlsx"` на путь, по которому нужно сохранить файл Excel.
