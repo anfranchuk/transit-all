@@ -1,0 +1,90 @@
+Sub SaveToExcel()
+    Dim objExcel As Object
+    Dim objWorkbook As Object
+    Dim objWorksheet1 As Object
+    Dim objWorksheet2 As Object
+    Dim objFolder As Object
+    Dim objItems As Object
+    Dim objMail As Object
+    Dim row As Integer
+    
+    ' создание нового экземпляра Excel
+    Set objExcel = CreateObject("Excel.Application")
+    objExcel.Visible = True
+    
+    ' создание новой рабочей книги
+    Set objWorkbook = objExcel.Workbooks.Add
+    Set objWorksheet1 = objWorkbook.Sheets.Add
+    Set objWorksheet2 = objWorkbook.Sheets.Add
+    
+    ' наименование листов
+    objWorksheet1.Name = "Входящие"
+    objWorksheet2.Name = "Исходящие"
+    
+    ' настройка заголовков столбцов
+    objWorksheet1.Cells(1, 1).Value = "Отправитель"
+    objWorksheet1.Cells(1, 2).Value = "Кому"
+    objWorksheet1.Cells(1, 3).Value = "Тема"
+    objWorksheet1.Cells(1, 4).Value = "Получено"
+    objWorksheet1.Cells(1, 5).Value = "Размер"
+    objWorksheet1.Cells(1, 6).Value = "Категория"
+    
+    objWorksheet2.Cells(1, 1).Value = "Отправитель"
+    objWorksheet2.Cells(1, 2).Value = "Кому"
+    objWorksheet2.Cells(1, 3).Value = "Тема"
+    objWorksheet2.Cells(1, 4).Value = "Получено"
+    objWorksheet2.Cells(1, 5).Value = "Размер"
+    objWorksheet2.Cells(1, 6).Value = "Категория"
+    
+    ' выбор папки с письмами
+    Set objFolder = Outlook.Application.GetNamespace("MAPI").GetDefaultFolder(olFolderInbox)
+    Set objItems = objFolder.Items
+    
+    row = 2
+    
+    ' сохранение входящих писем
+    For Each objMail In objItems
+        If TypeName(objMail) = "MailItem" And DateValue(objMail.ReceivedTime) = DateValue(Now) Then
+            objWorksheet1.Cells(row, 1).Value = objMail.SenderName
+            objWorksheet1.Cells(row, 2).Value = objMail.To
+            objWorksheet1.Cells(row, 3).Value = objMail.Subject
+            objWorksheet1.Cells(row, 4).Value = objMail.ReceivedTime
+            objWorksheet1.Cells(row, 5).Value = objMail.Size
+            objWorksheet1.Cells(row, 6).Value = objMail.Categories
+            row = row + 1
+        End If
+    Next objMail
+    
+    ' выбор папки с исходящими письмами
+    Set objFolder = Outlook.Application.GetNamespace("MAPI").GetDefaultFolder(olFolderSentMail)
+    Set objItems = objFolder.Items
+    
+    row = 2
+    
+    ' сохранение исходящих писем
+    For Each objMail In objItems
+        If TypeName(objMail) = "MailItem" And DateValue(objMail.ReceivedTime) = DateValue(Now) Then
+            objWorksheet2.Cells(row, 1).Value = objMail.SenderName
+            objWorksheet2.Cells(row, 2).Value = objMail.To
+            objWorksheet2.Cells(row, 3).Value = objMail.Subject
+            objWorksheet2.Cells(row, 4).Value = objMail.ReceivedTime
+            objWorksheet2.Cells(row, 5).Value = objMail.Size
+            objWorksheet2.Cells(row, 6).Value = objMail.Categories
+            row = row + 1
+        End If
+    Next objMail
+    
+    ' создание имени файла в формате ЧЧММГГГГ.xlsx
+    Dim fileName As String
+    fileName = Format(Now, "HHMMYYYY") & ".xlsx"
+    
+    ' сохранение книги
+    objWorkbook.SaveAs "C:\Путь\к\файлу\" & fileName ' замените путь к файлу на свой
+       
+    ' освобождение ресурсов
+    objWorkbook.Close
+    Set objWorkbook = Nothing
+    Set objExcel = Nothing
+    
+    MsgBox "Письма сохранены в файл Excel"
+End Sub
