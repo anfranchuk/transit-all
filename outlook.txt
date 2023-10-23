@@ -1,0 +1,86 @@
+Для создания макроса в Outlook, который сохранит все входящие и исходящие письма в файл Excel на две разные страницы, нужно выполнить следующие шаги:
+
+1. Откройте Outlook и перейдите в режим разработчика. Для этого нажмите правой кнопкой мыши на ленте инструментов Outlook и выберите "Настроить ленту".
+2. В окне "Настройка ленты" найдите раздел "Главная вкладка (главный перечень команд)" и в списке команд выберите "Разработчик". Нажмите "ОК", чтобы сохранить изменения.
+3. Нажмите на вкладку "Разработчик", которая появится в главном меню Outlook.
+4. В группе "Макросы" нажмите на кнопку "Макросы" для создания нового макроса.
+5. В открывшемся окне название макроса, введите любое уникальное имя (например, "Сохранить в Excel").
+6. Нажмите на кнопку "Создать", чтобы открыть редактор VBA.
+7. В открывшемся окне редактора VBA вставьте следующий код:
+
+Sub SaveToExcel()
+    Dim objExcel As Object
+    Dim objWorkbook As Object
+    Dim objWorksheet1 As Object
+    Dim objWorksheet2 As Object
+    Dim objFolder As Object
+    Dim objItems As Object
+    Dim objMail As Object
+    Dim row As Integer
+    
+    ' создание нового экземпляра Excel
+    Set objExcel = CreateObject("Excel.Application")
+    objExcel.Visible = True
+    
+    ' создание новой рабочей книги
+    Set objWorkbook = objExcel.Workbooks.Add
+    Set objWorksheet1 = objWorkbook.Sheets.Add
+    Set objWorksheet2 = objWorkbook.Sheets.Add
+    
+    ' наименование листов
+    objWorksheet1.Name = "Входящие"
+    objWorksheet2.Name = "Исходящие"
+    
+    ' настройка заголовков столбцов
+    objWorksheet1.Cells(1, 1).Value = "Получатель"
+    objWorksheet1.Cells(1, 2).Value = "Тема"
+    
+    objWorksheet2.Cells(1, 1).Value = "Отправитель"
+    objWorksheet2.Cells(1, 2).Value = "Тема"
+    
+    ' выбор папки с письмами
+    Set objFolder = Outlook.Application.GetNamespace("MAPI").GetDefaultFolder(olFolderInbox)
+    Set objItems = objFolder.Items
+    
+    row = 2
+    
+    ' сохранение входящих писем
+    For Each objMail In objItems
+        If TypeName(objMail) = "MailItem" Then
+            objWorksheet1.Cells(row, 1).Value = objMail.ReceivedByName
+            objWorksheet1.Cells(row, 2).Value = objMail.Subject
+            row = row + 1
+        End If
+    Next objMail
+    
+    ' выбор папки с исходящими письмами
+    Set objFolder = Outlook.Application.GetNamespace("MAPI").GetDefaultFolder(olFolderSentMail)
+    Set objItems = objFolder.Items
+    
+    row = 2
+    
+    ' сохранение исходящих писем
+    For Each objMail In objItems
+        If TypeName(objMail) = "MailItem" Then
+            objWorksheet2.Cells(row, 1).Value = objMail.SenderName
+            objWorksheet2.Cells(row, 2).Value = objMail.Subject
+            row = row + 1
+        End If
+    Next objMail
+    
+    ' сохранение книги
+    objWorkbook.SaveAs "C:\Путь\к\файлу\Excel_File.xlsx" ' замените путь к файлу на свой
+       
+    ' освобождение ресурсов
+    objWorkbook.Close
+    Set objWorkbook = Nothing
+    Set objExcel = Nothing
+    
+    MsgBox "Письма сохранены в файл Excel"
+End Sub
+
+8. В коде макроса замените "C:\Путь\к\файлу\Excel_File.xlsx" на путь, по которому хотите сохранить файл Excel.
+9. Сохраните и закройте редактор VBA.
+10. В окне макросов выберите только что созданный макрос "Сохранить в Excel" и нажмите "Выполнить".
+
+После выполнения макроса все входящие и исходящие письма будут сохранены в файле Excel на две разные страницы.
