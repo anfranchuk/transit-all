@@ -68,7 +68,7 @@ def SaveToExcel():
     fileName = datetime.datetime.now().strftime("%H%M%Y") + ".xlsx"
 
     # сохранение книги
-    objWorkbook.SaveAs(r"C:\temp" + fileName)
+    objWorkbook.SaveAs("C:\\" + fileName)
 
     # освобождение ресурсов
     objWorkbook.Close()
